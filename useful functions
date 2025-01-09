@@ -1,0 +1,222 @@
+#include <cmath>
+#include <fstream>
+#include <iostream>
+#include "TGraph.h"
+#include "TH1F.h"
+#include "VectorOperations.h"
+#include <vector>
+
+using namespace std;
+
+// =================================
+// FUNZIONI *PRINT*
+// =================================
+
+template <typename T> void Print(const vector<T> &v) {
+  for (int i = 0; i < v.size(); i++)
+    cout << v[i] << endl;
+  return;
+};
+
+template <typename T> void Print2(const vector<T> &v, const char nomefileout[]){
+
+  ofstream flussout;
+  flussout.open(nomefileout);
+
+  char *a;
+  for (int i = 0; i < 3; i++) {
+    if (flussout.fail()) {
+      cout << "\nProblema in apertura del file di output. Reinserire nome: ";
+      cin >> a;
+      flussout.clear();
+      flussout.open(a);
+    }
+  }
+	
+  for (int i = 0; i < v.size(); i++) {
+    flussout << v[i] << endl;
+  }
+
+  flussout << endl;
+  flussout.clear();
+  flussout.close();
+
+}
+
+// =======================================
+// FUNZIONI *ROOT*
+// =======================================
+
+
+// all'inizio e alla fine, rispettivaemnte:
+	
+// 	TApplication app("app", 0, 0);
+//  TCanvas c;
+
+void initialize (TGraph &g , string titolo, string X , string Y){
+
+	g.SetTitle(titolo.c_str());
+	g.GetXaxis -> SetTitle(X.c_str());
+	g.GetYaxis -> SetTitle(Y.c_str());
+	g.SetLineColor(2);
+	g.Draw("ALP");
+	
+} 
+//  dichiaro thraph, faccio tutto quello che devo fare e uso initialize
+
+//  app.Run();
+
+
+template <typename T> TH1F FillHisto(const vector<T> &v) {
+
+  TH1F h("histo", "histo", 100, 0., 0.);
+  h.StatOverflows(kTRUE);
+  for (int k = 0; k < v.size(); k++)
+    h.Fill(v[k]);
+  return h;
+}
+
+
+// =======================================
+// FUNZIONI *READ*
+// =======================================
+
+template <typename T> vector<T> Read(unsigned int N, const char *filename) {
+
+  vector<T> v;
+
+  ifstream in(filename);
+
+  if (!in) {
+    cout << "Cannot open file" << filename << endl;
+    exit(11);
+  } else {
+    for (unsigned int i = 0;; i++) {
+      T appo;
+      in >> appo;
+      v.push_back(appo);
+
+      if (in.eof()) {
+        cout << "End of the file reached exiting" << endl;
+        break;
+      }
+    }
+  }
+  return v;
+};
+
+template <typename T> vector<T> ReadAll(const char *filename) {
+
+  vector<T> v;
+
+  ifstream in(filename);
+
+  if (!in) {
+    cout << "Cannot open file" << filename << endl;
+    exit(11);
+  } else {
+    T appo{};
+    while (in >> appo) {
+      v.push_back(appo);
+    }
+  }
+
+	in.close();
+return v;
+};
+
+// =======================================
+// FUNZIONI *STATISTICS*
+// =======================================
+
+template <typename T> double CalcolaMedia(const vector<T> &v) {
+
+  T accumulo{};
+
+  if (v.size() == 0)
+    return accumulo;
+  for (int k = 0; k < v.size(); k++) {
+    accumulo += v[k];
+  }
+  T media = accumulo / T(v.size());
+  return media;
+};
+
+template <typename T> double CalcolaMediana(vector<T> v) {
+
+  sort(v.begin(), v.end()); // Use the STL sort !!!
+
+  T mediana = 0;
+
+  if (v.size() % 2 == 0) {
+    mediana = (v[v.size() / 2 - 1] + v[v.size() / 2]) / 2.;
+  } else {
+    mediana = v[v.size() / 2];
+  }
+  return mediana;
+};
+
+template <typename T> double CalcolaVarianza(const vector<T> &v) {
+
+  T media = CalcolaMedia(v);
+  T pila{};
+  if (v.size() == 0)
+    return pila;
+  for (int i = 0; i < v.size(); i++) {
+    pila += pow(v[i] - media, 2.);
+  }
+  T varianza = pila / (v.size() - 1);
+  return varianza;
+};
+
+vector<double> MediaPesata( const vector<double> &x , const vector<double> &err ){
+
+	if( x.size() != err.size()) {
+		cout<<"I vettori hanno lunghezze differenti"<<endl;
+		exit(-1) ;}
+	vector<double> r(2);
+ int N = x.size();
+	double w{}, appo{}, wtot{};
+
+	for( int i = 0 ; i<N ; i++){
+
+		w = 1./ (err[i]*err[i]);
+
+		appo += x[i] * w;
+		wtot += w;
+		
+	}
+	
+	r[0] = appo/wtot ;
+	r[1] = 1. / sqrt( wtot);
+
+	return r;
+}
+
+// fatta per avere f(x) se vuoi x metti i valori al contrario
+double Interpolazione( double x , double xa , double xb , double ya, double yb){
+
+	return  ya + (ya - yb)/(xa - xb) * (x - xa);
+
+	
+}
+
+
+// =======================================
+// PASSARE QUALCOSA DA TERMINALE
+// =======================================
+
+int main(int argc, char **argv) {
+
+  // Controlla gli argomenti
+  if (argc != 4) {
+    std::cerr << "Usage: " << argv[0] << " <x> <y> <z>" << endl;
+    return -1;
+  }
+
+  double x = atof(argv[1]);
+  double y = atof(argv[2]);
+  double z = atof(argv[3]);
+
+	return 0;
+}
