@@ -1,0 +1,1 @@
+This repository contains files designed to: solve differential equations, evaluate definite integrals, find the roots of a function, and generate distributions using various methods. These tasks are implemented through C++ classes
